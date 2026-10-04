@@ -433,6 +433,36 @@ const lidarRanges = (sensors.lidar && sensors.lidar.ranges) ? sensors.lidar.rang
 memory.controller.computeAutonomousMovement(sensors.pose.x, sensors.pose.y, imuYaw, lidarRanges, robot);
 `,
 
+      // Competition-Grade Fast A* Global Planner + Holonomic DWA Navigator
+      fast_astar_dwa: `/**
+ * FAST A* GLOBAL PLANNER + HOLONOMIC DWA LOCAL NAVIGATOR
+ * -----------------------------------------------------------
+ * Architecture:
+ *   - Online 2D Occupancy Grid Mapping (LiDAR Raycasting)
+ *   - Morphology-Aware Costmap Inflation (O vs I Footprint)
+ *   - 8-Connected A* Global Search with String-Pulling Simplification
+ *   - 3-DOF Holonomic DWA with Dynamic Physical Acceleration Bounds
+ *   - Hard Collision Rejection & Braking Feasibility Guard
+ *   - Narrow Corridor Passage Morphology Hysteresis
+ *   - Anti-Stall & Contact Recovery Watchdog
+ */
+
+if (!memory.navigator) {
+  if (typeof FastAStarDwaNavigator !== "undefined") {
+    memory.navigator = new FastAStarDwaNavigator();
+  } else if (typeof window !== "undefined" && window.FastAStarDwaNavigator) {
+    memory.navigator = new window.FastAStarDwaNavigator();
+  } else {
+    robot.log("[ERROR] FastAStarDwaNavigator class not found!");
+  }
+  robot.log("Fast A* + Holonomic DWA Navigation System Active.");
+}
+
+if (memory.navigator) {
+  memory.navigator.update(sensors, robot, dt);
+}
+`,
+
       // 2. Goal Seeking with Artificial Potential Field & Dynamic Morphing
       goal_seeker: `/**
  * ROBO-ROARZ GOAL-SEEKING & RECONFIGURATION NAVIGATOR

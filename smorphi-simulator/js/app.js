@@ -290,6 +290,13 @@ class SmorphiApp {
       });
     }
 
+    const togglePlanner = document.getElementById("toggle-planner-path");
+    if (togglePlanner) {
+      togglePlanner.addEventListener("change", (e) => {
+        this.view3d.showPlannerPath = e.target.checked;
+      });
+    }
+
     const toggleAudio = document.getElementById("toggle-audio-sfx");
     if (toggleAudio) {
       toggleAudio.addEventListener("change", (e) => {

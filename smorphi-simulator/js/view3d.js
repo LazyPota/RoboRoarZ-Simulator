@@ -34,6 +34,9 @@ class Viewport3D {
     this.showLidarBeams = true;
     this.showTrajectory = true;
     this.showBoundingBoxes = false;
+    this.plannerPathLine = null;
+    this.lookaheadMarker = null;
+    this.showPlannerPath = true;
 
     this.init();
   }
@@ -88,6 +91,9 @@ class Viewport3D {
 
     // 9. Trajectory Trail
     this.buildTrajectoryVisualizer();
+
+    // 9.5 Autonomous Global Planner Path & Lookahead Marker
+    this.buildPlannerVisualizer();
 
     // 10. Goal Beacon
     this.buildGoalMarker();
@@ -361,6 +367,37 @@ class Viewport3D {
     this.scene.add(this.trajectoryLine);
   }
 
+  buildPlannerVisualizer() {
+    const maxPoints = 120;
+    const geom = new THREE.BufferGeometry();
+    const positions = new Float32Array(maxPoints * 3);
+    geom.setAttribute("position", new THREE.BufferAttribute(positions, 3));
+
+    const mat = new THREE.LineBasicMaterial({
+      color: 0x10b981, // Vibrant emerald green
+      linewidth: 3,
+      transparent: true,
+      opacity: 0.9,
+    });
+
+    this.plannerPathLine = new THREE.Line(geom, mat);
+    this.scene.add(this.plannerPathLine);
+
+    // Lookahead target point marker (cyan ring)
+    const markerGeo = new THREE.RingGeometry(0.04, 0.08, 16);
+    const markerMat = new THREE.MeshBasicMaterial({
+      color: 0x06b6d4, // Cyan
+      side: THREE.DoubleSide,
+      transparent: true,
+      opacity: 0.85,
+    });
+    this.lookaheadMarker = new THREE.Mesh(markerGeo, markerMat);
+    this.lookaheadMarker.rotation.x = -Math.PI / 2;
+    this.lookaheadMarker.position.y = 0.03;
+    this.lookaheadMarker.visible = false;
+    this.scene.add(this.lookaheadMarker);
+  }
+
   buildGoalMarker() {
     this.goalGroup = new THREE.Group();
 
@@ -503,6 +540,9 @@ class Viewport3D {
     // 7. Update Trajectory Breadcrumbs
     this.updateTrajectoryVisualization(robot.trajectory);
 
+    // 7.5. Update Autonomous Planner Path & Lookahead
+    this.updatePlannerVisualization();
+
     // 8. Update Goal Marker Animation
     if (this.goalGroup) {
       this.goalGroup.position.set(this.map.goal.x, 0, this.map.goal.y);
@@ -577,6 +617,38 @@ class Viewport3D {
 
     this.trajectoryLine.geometry.setDrawRange(0, count);
     posAttr.needsUpdate = true;
+  }
+
+  updatePlannerVisualization() {
+    if (!this.plannerPathLine) return;
+    const dbg = (typeof window !== "undefined") ? window.__plannerDebugState : null;
+    const hasPath = dbg && dbg.path && dbg.path.length > 0;
+
+    this.plannerPathLine.visible = this.showPlannerPath && hasPath;
+    if (this.lookaheadMarker) {
+      this.lookaheadMarker.visible = this.showPlannerPath && !!(dbg && dbg.lookahead);
+    }
+
+    if (!this.showPlannerPath || !hasPath) {
+      this.plannerPathLine.geometry.setDrawRange(0, 0);
+      return;
+    }
+
+    const path = dbg.path;
+    const posAttr = this.plannerPathLine.geometry.attributes.position;
+    const count = Math.min(path.length, 120);
+
+    for (let i = 0; i < count; i++) {
+      // In Three.js: arena x -> 3D X, arena y -> 3D Z
+      posAttr.setXYZ(i, path[i].x, 0.025, path[i].y);
+    }
+
+    this.plannerPathLine.geometry.setDrawRange(0, count);
+    posAttr.needsUpdate = true;
+
+    if (this.lookaheadMarker && dbg.lookahead) {
+      this.lookaheadMarker.position.set(dbg.lookahead.x, 0.03, dbg.lookahead.y);
+    }
   }
 
   updateCamera(robot) {

@@ -138,6 +138,10 @@
           <span class="text-[11px]">Trail</span>
         </label>
         <label class="flex items-center space-x-1 text-xs text-slate-300 cursor-pointer hover:text-white">
+          <input type="checkbox" id="toggle-planner-path" checked class="rounded bg-slate-800 border-slate-700 text-emerald-400 focus:ring-0">
+          <span class="text-[11px] text-emerald-300 font-medium">A* Path</span>
+        </label>
+        <label class="flex items-center space-x-1 text-xs text-slate-300 cursor-pointer hover:text-white">
           <input type="checkbox" id="toggle-audio-sfx" checked class="rounded bg-slate-800 border-slate-700 text-cyan-500 focus:ring-0">
           <span class="text-[11px]">SFX</span>
         </label>
@@ -218,6 +222,7 @@
           <div class="flex items-center space-x-2">
             <span class="text-slate-400">Template:</span>
             <select id="code-preset-select" class="bg-slate-800 text-cyan-400 font-medium text-xs rounded px-2 py-1 border border-slate-700 focus:outline-none focus:border-cyan-500">
+              <option value="fast_astar_dwa" selected>Fast A* + Holonomic DWA (Competition)</option>
               <option value="default_avoidance">Autonomous 3-Waypoint Navigation (Default)</option>
               <option value="smorphi_autonomous">Smorphi 3-Waypoint Mission (C++ Port)</option>
               <option value="goal_seeker">RoboRoarZ Goal Seeker (Potential Field)</option>
@@ -512,6 +517,7 @@
   <script src="js/map.js"></script>
   <script src="js/physics.js"></script>
   <script src="js/sensors.js"></script>
+  <script src="js/autonomy/fastAStarDwa.js"></script>
   <script src="js/codeEngine.js"></script>
   <script src="js/telemetry.js"></script>
   <script src="js/view3d.js"></script>
